@@ -43,29 +43,33 @@ def popen_and_call(on_exit, exit_args, popen_args, popen_kwargs):
     # returns immediately after the thread starts
     return thread
 
-
-def call_next(local_rank, prev_cmd=None, start_time=None):
-    global cmd_idx, walking, cmds, logs
-    if prev_cmd is not None:
+def call_next(local_rank, prev_idx=None, start_time=None):
+    global cmd_idx, walking, cmds, logs, cmds_status
+    if prev_idx is not None:
+        cmds_status[prev_idx] = True
+        prev_cmd = cmds[prev_idx]
         took = time.time()-start_time
         logs.append((prev_cmd, took))
         print(colored(f"Command: {prev_cmd} took: {took}", "blue"))
 
-    # if cmd_idx < len(cmds):  # call on available gpus
-    cmd = cmds[cmd_idx]
-    print(f"Running command:{colored(f'#{cmd_idx+1}/#{len(cmds)} on gpu: {local_rank}', 'magenta')}\n{colored(cmd, 'cyan')}")
-    popen_and_call(call_next, [local_rank, cmd, time.time()], [cmd], dict(shell=True, env={
-        **os.environ,
-        "CUDA_VISIBLE_DEVICES": f'{local_rank}'
-    }))  # returns immediately after the thread starts
-    cmd_idx += 1
+        if all(cmds_status):
+            with open('auto_test.log', 'w') as f:
+                for log in logs:
+                    f.write(f'{log[0]}, {log[1]}\n')
 
-    if cmd_idx == len(cmds):
-        with open('auto_test.log', 'w') as f:
-            for log in logs:
-                f.write(f'{log[0]}, {log[1]}')
+            # os.system('python auto_walk.py')  # generate out.gif for all possible output images
+
+    if cmd_idx < len(cmds):  # call on available gpus
+        cmd = cmds[cmd_idx]
+        print(f"Running command:{colored(f'#{cmd_idx+1}/#{len(cmds)} on gpu: {local_rank}', 'magenta')}\n{colored(cmd, 'cyan')}")
+        popen_and_call(call_next, [local_rank, cmd_idx, time.time()], [cmd], dict(shell=True, env={
+            **os.environ,
+            "CUDA_VISIBLE_DEVICES": f'{local_rank}'
+        }))  # returns immediately after the thread starts
+        cmd_idx += 1
 
 logs = []
+cmds_status = [False for _ in cmds]
 
 print(colored(f'Running evaluation tasks on GPUS: {gpus}', "yellow"))
 for gpu in gpus:
