@@ -1,3 +1,11 @@
+*.png
+*.jpg
+output
+demo_file
+temp_results
+insightface_func/models
+parsing_model/checkpoint
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

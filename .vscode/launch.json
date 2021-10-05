@@ -10,6 +10,34 @@
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}"
-        }
+        },
+        {
+            "name": "Example",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "7"
+            },
+            "args": [
+                "--isTrain",
+                "false",
+                "--use_mask",
+                "--name",
+                "people",
+                "--Arc_path",
+                "arcface_model/arcface_checkpoint.tar",
+                "--pic_a_path",
+                "./demo_file/specific1.png",
+                "--video_path",
+                "./demo_file/testing/videos/#白月光 赶一下白月光末班车还有人看嘛嘻嘻 - 15fps.mp4",
+                "--output_path",
+                "./output/testing.mp4",
+                "--temp_path",
+                "./temp_results"
+            ]
+        },
     ]
 }
